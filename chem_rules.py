@@ -100,3 +100,38 @@ def clean_footer(lines):
         if rm: removed.append({"i": i, "text": ln})
         else: kept.append(ln)
     return kept, removed
+def merge_broken_paragraphs(lines):
+    """
+    Gộp các dòng bị ngắt giữa chừng (khi câu chưa kết thúc).
+    Quy tắc:
+    - Nếu dòng không kết thúc bằng dấu chấm, hỏi, chấm than, hoặc dấu hai chấm,
+      và dòng kế tiếp bắt đầu bằng chữ thường -> nối 2 dòng lại.
+    """
+    merged = []
+    buffer = ""
+
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            # dòng trống: kết thúc đoạn
+            if buffer:
+                merged.append(buffer.strip())
+                buffer = ""
+            continue
+
+        if buffer:
+            # kiểm tra xem có nên nối với dòng trước không
+            if (not buffer.endswith((".", "?", "!", ":", "…"))
+                and stripped and stripped[0].islower()):
+                buffer += " " + stripped
+            else:
+                merged.append(buffer.strip())
+                buffer = stripped
+        else:
+            buffer = stripped
+
+    if buffer:
+        merged.append(buffer.strip())
+
+    return merged
+
