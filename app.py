@@ -164,7 +164,7 @@ if uploaded is not None:
             fixed = []
             skip_next = False
             for i, ln in enumerate(expanded):
-            if skip_next:
+         if skip_next:
             skip_next = False
             continue
             if re.fullmatch(r'^[A-DĐ][.)]$', ln.strip()):
