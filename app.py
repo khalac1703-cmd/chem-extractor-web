@@ -3,7 +3,21 @@ import streamlit as st
 from typing import List
 from bs4 import BeautifulSoup
 from chem_rules import chem_transform_v3, clean_footer
+import re
+OPTION_LABEL_RE = re.compile(r'^\s*([A-DĐ])\s*[.)]\s+(.*)$')
 
+def sanitize_lines_for_options(lines: List[str]) -> List[str]:
+    fixed = []
+    for ln in lines:
+        ln = ln.rstrip().rstrip("\u00A0")  # cắt space & NBSP ở cuối dòng
+        m = OPTION_LABEL_RE.match(ln)
+        if m:
+            label, body = m.group(1), m.group(2)
+            # YÊU CẦU: bỏ luôn khoảng trắng sau nhãn
+            ln = f"{label}.{body}"
+            # Nếu muốn GIỮ 1 khoảng trắng: ln = f"{label}. {body}"
+        fixed.append(ln)
+    return fixed
 # -------- PDF text extraction --------
 def extract_text_from_pdf(file_bytes: bytes) -> str:
     from pdfminer.high_level import extract_text
@@ -82,6 +96,7 @@ if uploaded is not None:
         lines = text.replace("\r\n","\n").replace("\r","\n").split("\n")
         if drop_footer:
             lines, removed = clean_footer(lines)
+            lines = sanitize_lines_for_options(lines)
             with st.expander("Dòng đã loại bỏ (footer/số trang)"):
                 st.json(removed)
 
