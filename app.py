@@ -141,7 +141,11 @@ if uploaded is not None:
         lines = text.replace("\r\n","\n").replace("\r","\n").split("\n")
         if drop_footer:
             lines, removed = clean_footer(lines)
-            lines = sanitize_lines_for_options(lines)
+            st.write("Removed lines:", removed)
+         # Hợp nhất các đoạn văn bị ngắt dòng giữa chừng (Nomex, mô tả dài,...)
+         from chem_rules import merge_broken_paragraphs
+         lines = merge_broken_paragraphs(lines)
+         lines = sanitize_lines_for_options(lines)
             with st.expander("Dòng đã loại bỏ (footer/số trang)"):
                 st.json(removed)
 
