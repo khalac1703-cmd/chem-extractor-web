@@ -19,10 +19,10 @@ def to_html(lines: List[str], normalize_arrows: bool) -> str:
     parts = ['<html><head><meta charset="utf-8"><title>Chem</title></head>'
              '<body style="font-family:Times New Roman,serif; line-height:1.35; font-size:14px; white-space:pre-wrap;">']
     for ln in lines:
+        ln = ln.rstrip()   # <<< quan trọng: bỏ space ở cuối dòng
         parts.append(f"<div>{chem_transform_v3(ln, normalize_arrows)}</div>")
     parts.append("</body></html>")
     return "\n".join(parts)
-
 # ---- HTML -> DOCX (giữ sub/sup + basic bold/italic nếu có trong HTML) ----
 def html_to_docx(chem_html: str) -> bytes:
     from docx import Document
@@ -32,22 +32,24 @@ def html_to_docx(chem_html: str) -> bytes:
     def add_nodes(parent, paragraph):
         for node in parent.children:
             if isinstance(node, str):
-                paragraph.add_run(node)
+                txt = node.rstrip()          # <<< bỏ space cuối
+                if txt: paragraph.add_run(txt)
             else:
                 tag = node.name.lower()
                 if tag == "sub":
-                    r = paragraph.add_run(node.get_text()); r.font.subscript = True
+                    r = paragraph.add_run(node.get_text().rstrip()); r.font.subscript = True
                 elif tag == "sup":
-                    r = paragraph.add_run(node.get_text()); r.font.superscript = True
+                    r = paragraph.add_run(node.get_text().rstrip()); r.font.superscript = True
                 elif tag in ("b","strong"):
-                    r = paragraph.add_run(node.get_text()); r.bold = True
+                    r = paragraph.add_run(node.get_text().rstrip()); r.bold = True
                 elif tag in ("i","em"):
-                    r = paragraph.add_run(node.get_text()); r.italic = True
+                    r = paragraph.add_run(node.get_text().rstrip()); r.italic = True
                 else:
                     if node.contents:
                         add_nodes(node, paragraph)
                     else:
-                        paragraph.add_run(node.get_text())
+                        t = node.get_text().rstrip()
+                        if t: paragraph.add_run(t)
 
     for div in soup.select("body > div, p"):
         p = doc.add_paragraph()
