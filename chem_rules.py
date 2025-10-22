@@ -15,6 +15,17 @@ def normalize_arrows(s: str, enabled: bool) -> str:
 def chem_transform_v3(s: str, normalize_ascii_arrows: bool=False) -> str:
     s = normalize_arrows(s, normalize_ascii_arrows)
     s = s.replace("•", "·")
+        # --- (MỚI) Chuẩn hoá đơn vị & nhiệt độ ---
+    # 1) 'oC' hoặc 'o C' sau số -> '°C'; cũng gom '° C' -> '°C'
+    s = re.sub(r'(?<=\d)\s*o\s*C', ' °C', s)     # 25 oC -> 25 °C
+    s = re.sub(r'°\s*C', '°C', s)                # 25 ° C -> 25 °C
+
+    # 2) m^3, cm^3, dm^3, mm^3  -> dùng <sup>3>
+    s = re.sub(r'\b([cdm]?m)\s*\^\s*([23])\b', r'\1<sup>\2</sup>', s)  # m^3, cm^2...
+
+    # 3) m3, cm3, dm3, mm3 -> <sup>3> (chỉ áp cho đơn vị, không ảnh hưởng CH3)
+    s = re.sub(r'\b([cdm]?m)\s*([23])\b', r'\1<sup>\2</sup>', s)       # m3 -> m<sup>3</sup>
+
     s = re.sub(r'(?<=[A-Za-z\)\]\}])(\d+)', r'<sub>\1</sub>', s)        # H2O, (SO4)3
     s = re.sub(r'(·)\s*(\d+)', r'\1<sub>\2</sub>', s)                    # ·5H2O
     s = re.sub(r'(?<=[\]\)\}])(\d*)([+-])', lambda m: f"<sup>{m.group(1)}{m.group(2)}</sup>", s)
