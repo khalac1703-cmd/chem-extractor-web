@@ -22,8 +22,8 @@ def chem_transform_v3(s: str, normalize_ascii_arrows: bool=False) -> str:
 
     # (b) Ký hiệu micro: ug, um (hoặc u g / u m) -> µg, µm
     #     Chỉ thay khi 'u' đứng một mình trước g/m để tránh đụng từ khác.
-    s = re.sub(r'\bu\s*(g)\b', 'µ\\1', s, flags=re.IGNORECASE)  # ug -> µg
-    s = re.sub(r'\bu\s*(m)\b', 'µ\\1', s, flags=re.IGNORECASE)  # um -> µm
+    s = re.sub(r'\bu\s*(g)\b', 'µ\1', s, flags=re.IGNORECASE)  # ug -> µg
+    s = re.sub(r'\bu\s*(m)\b', 'µ\1', s, flags=re.IGNORECASE)  # um -> µm
 
     # (c) Diện tích/Thể tích cho các bội số phổ biến: km2, m2, cm2, mm2, dm2; km3, m3, cm3, mm3, dm3
     #     (nếu đã có dạng m^2/m^3, các quy tắc trước đó đã xử lý)
@@ -69,23 +69,6 @@ PAGE_WORD = re.compile(r'^\s*(Trang|Page)\s*\d+(\s*[/\-]\s*\d+)?\s*$', re.IGNORE
 QSTART = re.compile(r'^\s*(Câu|Question|Q)\s*\d+', re.IGNORECASE)
 OPTSTART = re.compile(r'^\s*[ABCDĐ]\.?\s+')
 
-def clean_footer(lines):
-    freq = Counter([ln.strip() for ln in lines if ln.strip()])
-    repeated = {t for t,c in freq.items() if c >= 3 and 4 <= len(t) <= 60}
-    kept, removed = [], []
-    for i, ln in enumerate(lines):
-        s = ln.strip()
-        rm = False
-        if PURE_PAGE.match(s) or PAGE_WORD.match(s):
-            rm = True
-        elif s in repeated:
-            if QSTART.match(s) or OPTSTART.match(s): rm = False
-            elif any(sym in s for sym in ["->","<->","<=>","⇌","→","↔","⟶","=","+"]): rm = False
-            elif re.search(r'\b(Phần|Câu|Bài)\b', s, re.IGNORECASE): rm = False
-            else: rm = True
-        if rm: removed.append({"i": i, "text": ln})
-        else: kept.append(ln)
-    return kept, removed
 # (thêm ngay dưới các import/regex hiện có)
 FOOTER_TYHH = re.compile(r'^\s*\d+\s*\|\s*T\s*Y\s*H\s*H\s*$', re.IGNORECASE)
 FOOTER_TYHH_COMPACT = re.compile(r'^\s*\d+\s*\|\s*TYHH\s*$', re.IGNORECASE)
