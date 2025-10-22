@@ -3,21 +3,66 @@ import streamlit as st
 from typing import List
 from bs4 import BeautifulSoup
 from chem_rules import chem_transform_v3, clean_footer
+# --- Option sanitizer (ABCD) ---
 import re
-OPTION_LABEL_RE = re.compile(r'^\s*([A-DĐ])\s*[.)]\s+(.*)$')
+from typing import List
+
+# A./B./C./D./Đ. (chấp nhận có/không khoảng trắng; dấu . hoặc ))
+OPT_LABEL = r'(?:[A-DĐ])\s*[.)]'
+
+# Tách nhiều nhãn A/B/C/D nếu chúng xuất hiện nối tiếp nhau trên cùng 1 dòng
+# Ví dụ: "A. 10   B. 20   C. 30" -> tách thành 3 dòng
+MULTI_OPT_SPLIT_RE = re.compile(r'\s+(?=([A-DĐ])\s*[.)]\s+)')
+
+# Nhận diện 1 dòng đáp án bắt đầu bằng A./B./C./D./Đ.
+LINE_OPT_RE = re.compile(r'^\s*([A-DĐ])\s*[.)]\s*(.*)$')
 
 def sanitize_lines_for_options(lines: List[str]) -> List[str]:
-    fixed = []
+    out: List[str] = []
+
+    # 1) Tách các nhãn nếu có nhiều đáp án trên cùng một dòng
+    expanded: List[str] = []
     for ln in lines:
-        ln = ln.rstrip().rstrip("\u00A0")  # cắt space & NBSP ở cuối dòng
-        m = OPTION_LABEL_RE.match(ln)
+        ln = ln.rstrip().rstrip("\u00A0")  # bỏ space/NBSP cuối dòng
+        # Nếu có từ 2 nhãn trở lên trên 1 dòng
+        if re.search(OPT_LABEL + r'.*\s+' + OPT_LABEL, ln):
+            parts = MULTI_OPT_SPLIT_RE.split(ln)
+            buf = ""
+            for p in parts:
+                if re.fullmatch(r'[A-DĐ]', p or ""):
+                    if buf.strip():
+                        expanded.append(buf.strip())
+                    buf = p + ". "
+                else:
+                    buf += (p or "")
+            if buf.strip():
+                expanded.append(buf.strip())
+        else:
+            expanded.append(ln)
+
+    # 2) Ép định dạng chuẩn morat: "A. {body}" (đúng 1 khoảng trắng sau "A.")
+    tmp: List[str] = []
+    for ln in expanded:
+        m = LINE_OPT_RE.match(ln)
         if m:
-            label, body = m.group(1), m.group(2)
-            # YÊU CẦU: bỏ luôn khoảng trắng sau nhãn
-            ln = f"{label}.{body}"
-            # Nếu muốn GIỮ 1 khoảng trắng: ln = f"{label}. {body}"
-        fixed.append(ln)
-    return fixed
+            label, body = m.group(1), m.group(2).lstrip()
+            ln = f"{label}. {body}"
+        tmp.append(ln)
+
+    # 3) Xoá dòng trống giữa các đáp án liên tiếp
+    def is_option(s: str) -> bool:
+        return bool(LINE_OPT_RE.match(s))
+
+    for i, ln in enumerate(tmp):
+        if ln.strip() == "":
+            prev_is_opt = i > 0 and is_option(tmp[i-1])
+            next_is_opt = i+1 < len(tmp) and is_option(tmp[i+1])
+            if prev_is_opt and next_is_opt:
+                continue  # bỏ dòng trống xen giữa các đáp án
+        out.append(ln)
+
+    return out
+
 # -------- PDF text extraction --------
 def extract_text_from_pdf(file_bytes: bytes) -> str:
     from pdfminer.high_level import extract_text
