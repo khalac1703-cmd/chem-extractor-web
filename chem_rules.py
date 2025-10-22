@@ -61,6 +61,12 @@ def chem_transform_v3(s: str, normalize_ascii_arrows: bool=False) -> str:
     s = re.sub(r'\^\{([^}]+)\}', lambda m: f"<sup>{m.group(1)}</sup>", s) # ^{2-}
     s = re.sub(r'\^(\d+[+-]?)', lambda m: f"<sup>{m.group(1)}</sup>", s)  # ^2-, ^3+
     s = re.sub(r'\^([+-])', lambda m: f"<sup>{m.group(1)}</sup>", s)      # ^+, ^-
+    # --- FIX: nhận diện ion âm/dương kiểu SO4 2-, NO3-, Fe3+ ---
+    # Dạng có khoảng trắng giữa gốc và điện tích (SO4 2-, Fe 3+, Cl -)
+    s = re.sub(r'(?<=\b[A-Za-z0-9\)\]])\s*(\d?[+-])\b', lambda m: f"<sup>{m.group(1)}</sup>", s)
+    # Dạng không có khoảng trắng: SO4-2, NO3-, Fe3+
+    s = re.sub(r'(?<=\b[A-Za-z0-9\)\]])(\d?[+-])\b', lambda m: f"<sup>{m.group(1)}</sup>", s)
+
     return s
 
 # --- footer/page cleaner (an toàn) ---
