@@ -140,16 +140,19 @@ if uploaded is not None:
         st.error("Không trích xuất được text. Kiểm tra file có phải scan/ảnh không.")
     else:
         lines = text.replace("\r\n","\n").replace("\r","\n").split("\n")
-        if drop_footer:
-            lines, removed = clean_footer(lines)
-            st.write("Removed lines:", removed)
-            # Gộp lại các dòng bị ngắt giữa chừng (ví dụ câu Nomex)
-            lines = merge_broken_paragraphs(lines)
-            # Chuẩn hoá định dạng đáp án (A./B./C./D.)
-            lines = sanitize_lines_for_options(lines)
+      if drop_footer:
+    lines, removed = clean_footer(lines)
+    st.write("Removed lines:", removed)
 
-            with st.expander("Dòng đã loại bỏ (footer/số trang)"):
-                st.json(removed)
+    # Gộp lại các dòng bị ngắt giữa chừng (ví dụ câu Nomex)
+    lines = merge_broken_paragraphs(lines)
+
+    # Chuẩn hoá định dạng đáp án (A./B./C./D.)
+    lines = sanitize_lines_for_options(lines)
+
+    with st.expander("Dòng đã loại bỏ (footer/số trang)"):
+        st.json(removed)
+
             # Gộp lại các dòng bị ngắt giữa chừng (ví dụ câu Nomex)
 lines = merge_broken_paragraphs(lines)
          # Hợp nhất các đoạn văn bị ngắt dòng giữa chừng (Nomex, mô tả dài,...)
