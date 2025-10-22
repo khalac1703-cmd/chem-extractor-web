@@ -160,14 +160,14 @@ if uploaded is not None:
             lines = sanitize_lines_for_options(lines)
             with st.expander("Dòng đã loại bỏ (footer/số trang)"):
                 st.json(removed)
-                # --- FIX: loại bỏ dòng nhãn đáp án bị tách rời (A./B./C./D. đứng một mình) ---
-    fixed = []
-    skip_next = False
-    for i, ln in enumerate(expanded):
-        if skip_next:
+            # --- FIX: loại bỏ dòng nhãn đáp án bị tách rời (A./B./C./D. đứng một mình) ---
+            fixed = []
+            skip_next = False
+            for i, ln in enumerate(expanded):
+            if skip_next:
             skip_next = False
             continue
-        if re.fullmatch(r'^[A-DĐ][.)]$', ln.strip()):
+            if re.fullmatch(r'^[A-DĐ][.)]$', ln.strip()):
             # nối với dòng kế tiếp nếu nó không phải là đáp án khác
             if i + 1 < len(expanded) and not re.match(OPT_LABEL, expanded[i + 1]):
                 merged = f"{ln.strip()} {expanded[i + 1].strip()}"
@@ -175,9 +175,9 @@ if uploaded is not None:
                 skip_next = True
             else:
                 fixed.append(ln)
-        else:
+            else:
             fixed.append(ln)
-    expanded = fixed
+            expanded = fixed
 
 
         html_out = to_html(lines, normalize_arrows=normalize)
