@@ -14,7 +14,7 @@ def normalize_arrows(s: str, enabled: bool) -> str:
 
 def chem_transform_v3(s: str, normalize_ascii_arrows: bool=False) -> str:
     s = normalize_arrows(s, normalize_ascii_arrows)
-   s = s.replace("•", "·") 
+       s = s.replace("•", "·")   # bullet -> middle dot (để có '·5H2O')
         # ===== MỞ RỘNG: đơn vị, chỉ số trên, ký hiệu micro, °F =====
     # (a) Nhiệt độ: oF / ° F  -> °F
     s = re.sub(r'(?<=\d)\s*o\s*F', ' °F', s)     # 77 oF -> 77 °F
@@ -22,8 +22,8 @@ def chem_transform_v3(s: str, normalize_ascii_arrows: bool=False) -> str:
 
     # (b) Ký hiệu micro: ug, um (hoặc u g / u m) -> µg, µm
     #     Chỉ thay khi 'u' đứng một mình trước g/m để tránh đụng từ khác.
-    s = re.sub(r'\bu\s*(g)\b', 'µ\1', s, flags=re.IGNORECASE)  # ug -> µg
-    s = re.sub(r'\bu\s*(m)\b', 'µ\1', s, flags=re.IGNORECASE)  # um -> µm
+s = re.sub(r'\bu\s*(g)\b', r'µ\1', s, flags=re.IGNORECASE)
+s = re.sub(r'\bu\s*(m)\b', r'µ\1', s, flags=re.IGNORECASE)
 
     # (c) Diện tích/Thể tích cho các bội số phổ biến: km2, m2, cm2, mm2, dm2; km3, m3, cm3, mm3, dm3
     #     (nếu đã có dạng m^2/m^3, các quy tắc trước đó đã xử lý)
