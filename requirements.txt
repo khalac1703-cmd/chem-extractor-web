@@ -1,0 +1,6 @@
+streamlit==1.39.0
+pdfminer.six==20231228
+PyPDF2==3.0.1
+beautifulsoup4==4.12.3
+lxml==5.3.0
+python-docx==1.1.2
