@@ -48,3 +48,34 @@ def clean_footer(lines):
         if rm: removed.append({"i": i, "text": ln})
         else: kept.append(ln)
     return kept, removed
+# (thêm ngay dưới các import/regex hiện có)
+FOOTER_TYHH = re.compile(r'^\s*\d+\s*\|\s*T\s*Y\s*H\s*H\s*$', re.IGNORECASE)
+FOOTER_TYHH_COMPACT = re.compile(r'^\s*\d+\s*\|\s*TYHH\s*$', re.IGNORECASE)
+
+def clean_footer(lines):
+    from collections import Counter
+    freq = Counter([ln.strip() for ln in lines if ln.strip()])
+    repeated = {t for t,c in freq.items() if c >= 3 and 4 <= len(t) <= 60}
+    kept, removed = [], []
+    for i, ln in enumerate(lines):
+        s = ln.strip()
+        rm = False
+        # ➊ xoá số trang kiểu " 3 " hoặc "Trang 3/7"
+        if PURE_PAGE.match(s) or PAGE_WORD.match(s):
+            rm = True
+        # ➋ xoá mẫu footer TYHH kiểu "4 | T Y H H" hoặc "4 | TYHH"
+        elif FOOTER_TYHH.match(s) or FOOTER_TYHH_COMPACT.match(s):
+            rm = True
+        # ➌ xoá dòng ngắn lặp lại nhiều lần (nhưng không phải nội dung thật)
+        elif s in repeated:
+            if QSTART.match(s) or OPTSTART.match(s):
+                rm = False
+            elif any(sym in s for sym in ["->","<->","<=>","⇌","→","↔","⟶","=","+"]):
+                rm = False
+            elif re.search(r'\b(Phần|Câu|Bài)\b', s, re.IGNORECASE):
+                rm = False
+            else:
+                rm = True
+        if rm: removed.append({"i": i, "text": ln})
+        else: kept.append(ln)
+    return kept, removed
