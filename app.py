@@ -1,8 +1,9 @@
 import io, os, json, html, tempfile
 import streamlit as st
+from chem_rules import chem_transform_v3, clean_footer, merge_broken_paragraphs
 from typing import List
 from bs4 import BeautifulSoup
-from chem_rules import chem_transform_v3, clean_footer
+
 # --- Option sanitizer (ABCD) ---
 import re
 from typing import List
@@ -142,9 +143,17 @@ if uploaded is not None:
         if drop_footer:
             lines, removed = clean_footer(lines)
             st.write("Removed lines:", removed)
+            # Gộp lại các dòng bị ngắt giữa chừng (ví dụ câu Nomex)
+            lines = merge_broken_paragraphs(lines)
+            # Chuẩn hoá định dạng đáp án (A./B./C./D.)
+            lines = sanitize_lines_for_options(lines)
+
+            with st.expander("Dòng đã loại bỏ (footer/số trang)"):
+                st.json(removed)
+            # Gộp lại các dòng bị ngắt giữa chừng (ví dụ câu Nomex)
+lines = merge_broken_paragraphs(lines)
          # Hợp nhất các đoạn văn bị ngắt dòng giữa chừng (Nomex, mô tả dài,...)
-         from chem_rules import merge_broken_paragraphs
-         lines = merge_broken_paragraphs(lines)
+    
          lines = sanitize_lines_for_options(lines)
             with st.expander("Dòng đã loại bỏ (footer/số trang)"):
                 st.json(removed)
